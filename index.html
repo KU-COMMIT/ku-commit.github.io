@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Linux Command Web Panel</h2>
+
+<select id="cmd">
+  <option value="cpu_info">CPU Info</option>
+  <option value="memory_info">Memory Info</option>
+  <option value="disk_usage">Disk Usage</option>
+  <option value="list_home">List Home Directory</option>
+</select>
+
+<button onclick="run()">Execute</button>
+
+<pre id="output"></pre>
+
+<script>
+async function run() {
+  const command = document.getElementById("cmd").value;
+
+  let res = await fetch("https://mydomain.com/run", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({command: command})
+  });
+
+  let json = await res.json();
+  document.getElementById("output").innerText = json.output || json.error;
+}
+</script>
+</body>
+</html>
