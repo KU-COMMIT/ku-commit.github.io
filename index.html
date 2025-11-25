@@ -1,8 +1,25 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>github io test page</title>
-  </head>
-  <body>
-    <h3>Hello world!</h3>
-  </body>
+<body>
+<button onclick="run('disk')">Disk Usage</button>
+<button onclick="run('cpu')">CPU Status</button>
+<button onclick="run('memory')">Memory Info</button>
+<button onclick="run('who')">Logged in Users</button>
+
+<pre id="output"></pre>
+
+<script>
+const SERVER_URL = "http://163.152.176.211:5000/run";
+const SECRET = "YOUR_SECRET_TOKEN";
+
+function run(cmd) {
+  fetch(`${SERVER_URL}?cmd=${cmd}`, {
+    headers: { "x-secret": SECRET }
+  })
+  .then(r => r.json())
+  .then(data => { document.getElementById("output").textContent = data.result; })
+  .catch(e => alert("Error: " + e));
+}
+</script>
+</body>
 </html>
