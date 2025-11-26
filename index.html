@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Text Generator Panel</title>
+    <title>LLM Text Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #output {
+            background: #111;
+            color: #0f0;
+            padding: 10px;
+            white-space: pre-wrap;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 6px;
+        }
+        button { margin-top: 10px; }
+    </style>
 </head>
 <body>
-<h3>Text Generator</h3>
 
-<!-- Model selection -->
-<label for="model">Choose a model:</label>
+<h2>Text Generator</h2>
+
+<label>Model:</label>
 <select id="model">
     <option value="gpt2-large">GPT-2 0.7B</option>
     <option value="opt-1b">OPT 1.3B</option>
@@ -16,62 +29,59 @@
 </select>
 <br><br>
 
-<!-- Num tokens input -->
-<label for="num_tokens">Number of tokens:</label>
+<label>Number of tokens:</label>
 <input type="number" id="num_tokens" value="32">
 <br><br>
 
-<!-- Text input -->
-<label for="text">Input text:</label><br>
+<label>Prompt:</label><br>
 <textarea id="text" rows="4" cols="50"></textarea>
 <br><br>
 
-<!-- Run button -->
-<button id="runText" onclick="runStream()">Run Text Generator</button>
+<button onclick="runStream()">Run</button>
+<button onclick="stopStream()">Stop</button>
 
-<pre id="output" style="background:#f0f0f0; padding:10px;"></pre>
+<h3>Output:</h3>
+<pre id="output"></pre>
 
 <script>
+let controller = null;
+
 async function runStream() {
-  const model = document.getElementById("model").value;
-  const num_tokens = document.getElementById("num_tokens").value;
-  const text = document.getElementById("text").value;
+    const output = document.getElementById("output");
+    output.textContent = "";
 
-  const payload = { model, num_tokens, text };
-  const output = document.getElementById("output");
-  output.textContent = "Generating...\n";
+    // Abort controller for stopping streaming
+    controller = new AbortController();
 
-  // Change this to YOUR Cloudflare tunneled endpoint
-  const url = "https://developed-mysql-dice-converter.trycloudflare.com/run";
+    const payload = {
+        model: document.getElementById("model").value,
+        num_tokens: parseInt(document.getElementById("num_tokens").value),
+        text: document.getElementById("text").value
+    };
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "x-secret": "skrkhfwk",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
+    const response = await fetch("https://pim-llm.korea-commit.workers.dev/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        signal: controller.signal
+    });
 
-  if (!response.ok) {
-    output.textContent = "Error: " + response.status;
-    return;
-  }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
 
-  output.textContent = ""; // clear previous output
+        const chunk = decoder.decode(value);
+        output.textContent += chunk;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+        output.scrollTop = output.scrollHeight; // Auto-scroll
+    }
+}
 
-    const chunk = decoder.decode(value);
-    output.textContent += chunk;
-  }
+function stopStream() {
+    if (controller) controller.abort();
 }
 </script>
-
 </body>
 </html>
