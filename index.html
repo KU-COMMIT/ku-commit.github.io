@@ -12,12 +12,6 @@
 <pre id="output"></pre>
 
 <script>
-const API_URL = "https://tracked-revolutionary-transcript-motivated.trycloudflare.com/run";    // from Cloudflare Tunnel
-const SECRET = "eyJ6b25lSUQiOiJhNzg1NTk2YTgxNGZmMDBlODdkYTU2NjQ0ODRkYmUxYSIsImFj
-Y291bnRJRCI6IjMzMWRjZTA1MjA2NjE0ODE2NjFkOTkyNjZjZWE4NDc0IiwiYXBp
-VG9rZW4iOiJ3eE9UQU5WRXlMM1JmblBrZWpWRUNOaU5taHV1akdIQ1NwY0lzcTFt
-In0=";
-
 function run(cmd) {
   fetch(`${API_URL}?cmd=${cmd}`, {
     headers: { "x-secret": SECRET }
