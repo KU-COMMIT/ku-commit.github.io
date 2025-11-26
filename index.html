@@ -12,13 +12,13 @@
 <pre id="output"></pre>
 
 <script>
+const WORKER_URL = "https://test-web.korea-commit.workers.dev";
+
 function run(cmd) {
-  fetch(`${API_URL}?cmd=${cmd}`, {
-    headers: { "x-secret": SECRET }
-  })
-  .then(r => r.json())
-  .then(r => document.getElementById("output").textContent = r.result)
-  .catch(e => alert("Error: " + e));
+  fetch(`${WORKER_URL}?cmd=${cmd}`)
+    .then(r => r.json())
+    .then(r => document.getElementById("output").textContent = r.result || JSON.stringify(r, null, 2))
+    .catch(e => alert("Error: " + e));
 }
 </script>
 </body>
