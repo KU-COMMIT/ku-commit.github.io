@@ -1,54 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Remote Server Command Panel</title>
+    <title>Text Generator Panel</title>
 </head>
 <body>
-<h3>Remote Server Command Panel</h3>
+<h3>Text Generator</h3>
 
-<label><input type="checkbox" class="command" value="disk"> Disk Usage</label><br>
-<label><input type="checkbox" class="command" value="cpu"> CPU Status</label><br>
-<label><input type="checkbox" class="command" value="memory"> Memory Info</label><br>
-<label><input type="checkbox" class="command" value="gpu"> GPU Status</label><br>
-<label><input type="checkbox" class="command" value="who"> Logged in Users</label><br><br>
+<!-- Model selection -->
+<label for="model">Choose a model:</label>
+<select id="model">
+    <option value="gpt2-large">GPT-2 0.7B</option>
+    <option value="opt-1b">OPT 1.3B</option>
+    <option value="phi-1b">Phi 1.3B</option>
+    <option value="bloom-1b">Bloom 1.7B</option>
+</select>
+<br><br>
 
-<button id="runSelected">Run Selected Commands</button>
+<!-- Num tokens input -->
+<label for="num_tokens">Number of tokens:</label>
+<input type="number" id="num_tokens" value="32">
+<br><br>
+
+<!-- Text input -->
+<label for="text">Input text:</label><br>
+<textarea id="text" rows="4" cols="50"></textarea>
+<br><br>
+
+<!-- Run button -->
+<button id="runText">Run Text Generator</button>
 
 <pre id="output" style="background:#f0f0f0; padding:10px;"></pre>
 
 <script>
-    const API_SECRET = "skrkshfwk";  // Must match server
+const API_SECRET = "skrkshfwk";
 
-    document.getElementById("runSelected").addEventListener("click", async function() {
-        const selectedCommands = Array.from(document.querySelectorAll(".command:checked")).map(cb => cb.value);
-        if(selectedCommands.length === 0) {
-            alert("Please select at least one command.");
-            return;
-        }
+document.getElementById("runText").addEventListener("click", async function() {
+    const model = document.getElementById("model").value;
+    const num_tokens = document.getElementById("num_tokens").value;
+    const text = document.getElementById("text").value;
 
-        try {
-            // Send all commands in one request as JSON
-            const response = await fetch("/run-multiple", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-secret": API_SECRET
-                },
-                body: JSON.stringify({ commands: selectedCommands })
-            });
+    if(!text) {
+        alert("Please enter input text.");
+        return;
+    }
 
-            const data = await response.json();
-            // Display results
-            let outputText = "";
-            for (const cmd of selectedCommands) {
-                outputText += `--- ${cmd} ---\n${data[cmd] || "Error"}\n\n`;
-            }
-            document.getElementById("output").textContent = outputText;
-        } catch (err) {
-            console.error(err);
-            alert("Error executing commands");
-        }
-    });
+    try {
+        const response = await fetch("/run-text", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-secret": API_SECRET
+            },
+            body: JSON.stringify({ model, num_tokens, text })
+        });
+
+        const data = await response.json();
+        document.getElementById("output").textContent = data.result;
+    } catch (err) {
+        console.error(err);
+        alert("Error running text generator");
+    }
+});
 </script>
 </body>
 </html>
