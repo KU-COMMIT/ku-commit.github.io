@@ -27,34 +27,49 @@
 <br><br>
 
 <!-- Run button -->
-<button id="runText">Run Text Generator</button>
+<button id="runText" onclick="runStream()">Run Text Generator</button>
 
 <pre id="output" style="background:#f0f0f0; padding:10px;"></pre>
 
 <script>
-function runStream() {
+async function runStream() {
   const model = document.getElementById("model").value;
   const num_tokens = document.getElementById("num_tokens").value;
   const text = document.getElementById("text").value;
 
   const payload = { model, num_tokens, text };
+  const output = document.getElementById("output");
+  output.textContent = "Generating...\n";
 
-  const source = new EventSourcePolyfill("https://pim-llm.korea-commit.workers.dev", {
-    headers: { "Content-Type": "application/json" },
+  // Change this to YOUR Cloudflare tunneled endpoint
+  const url = "https://developed-mysql-dice-converter.trycloudflare.com/run";
+
+  const response = await fetch(url, {
     method: "POST",
-    payload: JSON.stringify(payload)
+    headers: {
+      "x-secret": "skrkhfwk",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
   });
 
-  const output = document.getElementById("output");
-  output.textContent = "";
+  if (!response.ok) {
+    output.textContent = "Error: " + response.status;
+    return;
+  }
 
-  source.onmessage = (event) => {
-    if (event.data === "[DONE]") {
-      source.close();
-      return;
-    }
-    output.textContent += event.data + "\n";
-  };
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  output.textContent = ""; // clear previous output
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    output.textContent += chunk;
+  }
 }
 </script>
 
