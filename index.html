@@ -43,6 +43,7 @@
 <h3>Output:</h3>
 <pre id="output"></pre>
 
+
 <script>
 let controller = null;
 
@@ -50,7 +51,6 @@ async function runStream() {
     const output = document.getElementById("output");
     output.textContent = "";
 
-    // Abort controller for stopping streaming
     controller = new AbortController();
 
     const payload = {
@@ -72,10 +72,16 @@ async function runStream() {
         const { value, done } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        output.textContent += chunk;
+        const raw = decoder.decode(value);
 
-        output.scrollTop = output.scrollHeight; // Auto-scroll
+        // Remove "data:" prefix if present
+        const cleaned = raw
+            .split("\n")
+            .map(line => line.startsWith("data:") ? line.replace(/^data:\s*/, "") : line)
+            .join("\n");
+
+        output.textContent += cleaned;
+        output.scrollTop = output.scrollHeight;
     }
 }
 
