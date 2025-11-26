@@ -16,9 +16,12 @@ const WORKER_URL = "https://test-web.korea-commit.workers.dev";
 
 function run(cmd) {
   fetch(`${WORKER_URL}?cmd=${cmd}`)
-    .then(r => r.json())
-    .then(r => document.getElementById("output").textContent = r.result || JSON.stringify(r, null, 2))
-    .catch(e => alert("Error: " + e));
+  .then(r => r.json())
+  .then(r => {
+    document.getElementById("output").textContent = 
+      r.result || r.error || JSON.stringify(r, null, 2);
+  })
+  .catch(e => alert("Error: " + e));
 }
 </script>
 </body>
