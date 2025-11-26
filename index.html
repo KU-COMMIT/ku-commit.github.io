@@ -39,7 +39,7 @@ function runStream() {
 
   const payload = { model, num_tokens, text };
 
-  const source = new EventSourcePolyfill("https://YOUR_WORKER_URL", {
+  const source = new EventSourcePolyfill("https://pim-llm.korea-commit.workers.dev", {
     headers: { "Content-Type": "application/json" },
     method: "POST",
     payload: JSON.stringify(payload)
