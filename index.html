@@ -1,28 +1,54 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Remote Server Command Panel</title>
+</head>
 <body>
 <h3>Remote Server Command Panel</h3>
 
-<button onclick="run('disk')">Disk Usage</button>
-<button onclick="run('cpu')">CPU Status</button>
-<button onclick="run('memory')">Memory Info</button>
-<button onclick="run('gpu')">GPU Status</button>
-<button onclick="run('who')">Logged in Users</button>
+<label><input type="checkbox" class="command" value="disk"> Disk Usage</label><br>
+<label><input type="checkbox" class="command" value="cpu"> CPU Status</label><br>
+<label><input type="checkbox" class="command" value="memory"> Memory Info</label><br>
+<label><input type="checkbox" class="command" value="gpu"> GPU Status</label><br>
+<label><input type="checkbox" class="command" value="who"> Logged in Users</label><br><br>
 
-<pre id="output" style="white-space: pre-wrap;"></pre>
+<button id="runSelected">Run Selected Commands</button>
+
+<pre id="output" style="background:#f0f0f0; padding:10px;"></pre>
 
 <script>
-const WORKER_URL = "https://test-web.korea-commit.workers.dev";
+    const API_SECRET = "skrkshfwk";  // Must match server
 
-function run(cmd) {
-  fetch(`${WORKER_URL}?cmd=${cmd}`)
-  .then(r => r.json())
-  .then(r => {
-    document.getElementById("output").textContent = 
-      r.result || r.error || JSON.stringify(r, null, 2);
-  })
-  .catch(e => alert("Error: " + e));
-}
+    document.getElementById("runSelected").addEventListener("click", async function() {
+        const selectedCommands = Array.from(document.querySelectorAll(".command:checked")).map(cb => cb.value);
+        if(selectedCommands.length === 0) {
+            alert("Please select at least one command.");
+            return;
+        }
+
+        try {
+            // Send all commands in one request as JSON
+            const response = await fetch("/run-multiple", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-secret": API_SECRET
+                },
+                body: JSON.stringify({ commands: selectedCommands })
+            });
+
+            const data = await response.json();
+            // Display results
+            let outputText = "";
+            for (const cmd of selectedCommands) {
+                outputText += `--- ${cmd} ---\n${data[cmd] || "Error"}\n\n`;
+            }
+            document.getElementById("output").textContent = outputText;
+        } catch (err) {
+            console.error(err);
+            alert("Error executing commands");
+        }
+    });
 </script>
 </body>
 </html>
